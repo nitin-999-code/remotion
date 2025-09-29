@@ -6,6 +6,7 @@ A full-stack web application that allows users to upload MP4 videos, automatical
 
 - **Video Upload**: Upload MP4 files with drag-and-drop support
 - **Auto-captioning**: Generate captions using speech-to-text (currently using mock data)
+ - **Auto-captioning**: Generate captions via Deepgram or OpenAI Whisper (configurable)
 - **Hinglish Support**: Proper font handling for Devanagari (Hindi) and Latin (English) characters
 - **Multiple Caption Styles**: 3 predefined caption presets:
   - Bottom Centered
@@ -13,14 +14,14 @@ A full-stack web application that allows users to upload MP4 videos, automatical
   - Karaoke Style
 - **Real-time Preview**: Live preview using Remotion Player
 - **Caption Editor**: Edit captions manually with timing controls
-- **Video Export**: Export final video with captions (fully functional)
+- **Video Export**: Guided export via Remotion preview (manual render)
 
 ## Tech Stack
 
 - **Frontend**: Next.js 15 with TypeScript
 - **Styling**: Tailwind CSS
 - **Video Processing**: Remotion
-- **Speech-to-Text**: @xenova/transformers (Whisper)
+- **Speech-to-Text**: Deepgram API or OpenAI Whisper API (configurable)
 - **Icons**: Lucide React
 - **Fonts**: Noto Sans (supports Devanagari script)
 
@@ -97,15 +98,22 @@ src/
 ## API Endpoints
 
 ### POST /api/generate-captions
-Generates captions from video audio (currently returns mock data)
-```json
-{
-  "videoUrl": "string"
-}
+Generates captions from an uploaded MP4 using multipart FormData. Requires either `DEEPGRAM_API_KEY` or `OPENAI_API_KEY` in `.env.local`. If neither is set, returns an error.
+
+Request (multipart/form-data):
+```
+file: <MP4 binary>
+```
+
+Example using curl:
+```bash
+curl -X POST \
+  -F "file=@/path/to/video.mp4" \
+  http://localhost:3000/api/generate-captions
 ```
 
 ### POST /api/export-video
-Exports video with captions (placeholder implementation)
+Prepares export metadata for manual rendering in Remotion preview
 ```json
 {
   "videoUrl": "string",
@@ -126,30 +134,37 @@ npm run build
 # Start production server
 npm start
 
-# Run Remotion preview
-npm run remotion
+# Open Remotion preview (manual render)
+npx remotion preview --port=3001
 
-# Render video with Remotion
-npm run render
+# Optional: Render with Remotion CLI
+npx remotion render
 ```
 
 ## Implementation Notes
 
 ### Speech-to-Text
-Currently uses mock data for demonstration. To implement real speech-to-text:
+Configured to prefer Deepgram and fall back to OpenAI Whisper:
 
-1. Extract audio from uploaded video
-2. Use @xenova/transformers with Whisper model
-3. Process audio and return timestamped captions
+1. If `DEEPGRAM_API_KEY` is set, MP4 audio is sent to Deepgram; paragraphs/utterances are mapped to timed captions
+2. Else if `OPENAI_API_KEY` is set, the file is sent to OpenAI Whisper (`whisper-1`) and segments are mapped to captions
+3. If neither key is present, the endpoint returns an error instructing you to add one of the keys
+
+Add to `.env.local`:
+```
+DEEPGRAM_API_KEY=your_key_here    # preferred
+# or
+OPENAI_API_KEY=your_key_here      # fallback
+```
 
 ### Video Export
-The export functionality is now fully implemented:
+Export prepares data and guides manual rendering in Remotion preview:
 
 1. Click "Export Video with Captions" to prepare export data
-2. Data is saved to browser localStorage
-3. Run `npm run remotion` to open Remotion preview
-4. Your video, captions, and preset are automatically loaded
-5. Use Remotion's render interface to export the final video
+2. Data is saved to browser localStorage for the Remotion preview to read
+3. Run `npx remotion preview --port=3001` and open the preview
+4. The `VideoWithCaptions` composition will load your video, captions, and preset automatically
+5. Use the Remotion UI to render the final video (output saved to `out/`)
 
 ### Hinglish Support
 - Uses Noto Sans font with Devanagari subset
@@ -158,8 +173,7 @@ The export functionality is now fully implemented:
 
 ## Future Enhancements
 
-- Real speech-to-text integration
-- Video export functionality
+- On-device or offline STT option (e.g., @xenova/transformers)
 - SRT/VTT file import/export
 - Word-level karaoke effects
 - More caption style presets
