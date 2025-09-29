@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ['@xenova/transformers'],
+  // Handle monorepo structure
+  outputFileTracingRoot: process.env.VERCEL ? '../' : undefined,
   webpack: (config, { isServer }) => {
     // Handle WebAssembly files for transformers
     config.experiments = {
