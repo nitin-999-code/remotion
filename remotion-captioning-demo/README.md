@@ -201,3 +201,17 @@ This project is created for internship evaluation purposes.
 ## Contact
 
 For questions or issues, please refer to the project documentation or contact the development team.
+ 
+## Deploying to Vercel
+ 
+This app runs on Vercel using Next.js App Router.
+ 
+- API routes run on serverless functions. The `export-video` endpoint avoids persistent writes and uses `/tmp` when running on Vercel.
+- Configure environment variables in Vercel Project Settings → Environment Variables:
+  - `DEEPGRAM_API_KEY` (recommended) or `OPENAI_API_KEY` (fallback)
+- Build settings:
+  - Framework Preset: Next.js
+  - Install Command: `npm install`
+  - Build Command: `npm run build`
+  - Output: handled by Next.js
+- Remotion preview/rendering is a local workflow. Use `npx remotion preview --port=3001` locally to render videos.

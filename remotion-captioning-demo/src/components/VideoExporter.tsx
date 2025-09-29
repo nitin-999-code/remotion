@@ -32,7 +32,7 @@ export default function VideoExporter({ videoUrl, captions, preset }: VideoExpor
       // Generate instructions
       const instructions = [
         "1. Export data has been saved to your browser's local storage",
-        "2. Open a new terminal and run: npm run remotion",
+        "2. Open a new terminal and run: npx remotion preview --port=3001",
         "3. In the Remotion preview, select the 'VideoWithCaptions' composition",
         "4. The video URL, captions, and preset will be automatically loaded",
         "5. Click the 'Render' button in the Remotion interface",
@@ -108,7 +108,7 @@ export default function VideoExporter({ videoUrl, captions, preset }: VideoExpor
             </button>
             <button
               onClick={() => {
-                navigator.clipboard.writeText("npm run remotion");
+                navigator.clipboard.writeText("npx remotion preview --port=3001");
                 alert("Command copied to clipboard!");
               }}
               className="px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-sm"
