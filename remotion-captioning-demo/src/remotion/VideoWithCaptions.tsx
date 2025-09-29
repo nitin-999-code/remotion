@@ -52,7 +52,7 @@ export const VideoWithCaptions: React.FC<VideoWithCaptionsProps> = ({
             padding: preset.style.padding,
             borderRadius: preset.style.borderRadius,
             fontFamily: preset.style.fontFamily,
-            textAlign: preset.style.alignment as any,
+            textAlign: preset.style.alignment as React.CSSProperties["textAlign"],
             maxWidth: "80%",
             wordWrap: "break-word",
             lineHeight: 1.2,
@@ -97,7 +97,7 @@ export const VideoWithCaptions: React.FC<VideoWithCaptionsProps> = ({
             // Solid highlight up to progress, then transparent
             backgroundImage: `linear-gradient(to right, ${preset.style.textColor} ${Math.round(progress * 100)}%, rgba(0,0,0,0) ${Math.round(progress * 100)}%)`,
             backgroundClip: "text",
-            WebkitBackgroundClip: "text" as any,
+            WebkitBackgroundClip: "text" as unknown as React.CSSProperties["WebkitBackgroundClip"],
             textShadow: "2px 2px 6px rgba(0,0,0,0.9)",
           };
 

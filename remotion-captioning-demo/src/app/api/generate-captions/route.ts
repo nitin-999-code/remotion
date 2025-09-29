@@ -44,7 +44,19 @@ export async function POST(request: NextRequest) {
       }
 
       type DGParagraph = { start?: number; end?: number; text?: string };
-      const dgJson = (await dgRes.json()) as any;
+      type DGWord = { start?: number; end?: number; word?: string };
+      type DGAlt = {
+        paragraphs?: { paragraphs?: DGParagraph[] };
+        words?: DGWord[];
+      };
+      type DGChannel = { alternatives?: DGAlt[] };
+      type DGResponse = {
+        results?: {
+          channels?: DGChannel[];
+          utterances?: { start?: number; end?: number; transcript?: string }[];
+        };
+      };
+      const dgJson = (await dgRes.json()) as DGResponse;
       const paragraphs: DGParagraph[] =
         dgJson?.results?.channels?.[0]?.alternatives?.[0]?.paragraphs?.paragraphs || [];
 
@@ -75,7 +87,6 @@ export async function POST(request: NextRequest) {
           captions = uttCaptions;
         } else {
           // 3) Last fallback: group words into 3s chunks
-          type DGWord = { start?: number; end?: number; word?: string };
           const words: DGWord[] =
             dgJson?.results?.channels?.[0]?.alternatives?.[0]?.words || [];
           const grouped: { text: string; startTime: number; endTime: number }[] = [];
