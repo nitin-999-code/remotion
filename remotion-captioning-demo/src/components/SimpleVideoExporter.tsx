@@ -116,7 +116,14 @@ export default function SimpleVideoExporter({ videoUrl, captions, preset }: Simp
 
       // Create a combined MediaStream with canvas video + original audio
       const canvasStream = canvas.captureStream(30);
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      type AudioContextConstructor = new () => AudioContext;
+      const WebkitAudioContext = (window as unknown as {
+        webkitAudioContext?: AudioContextConstructor;
+      }).webkitAudioContext;
+      const AudioContextCtor: AudioContextConstructor =
+        (window.AudioContext as unknown as AudioContextConstructor) ||
+        (WebkitAudioContext as AudioContextConstructor);
+      const audioCtx = new AudioContextCtor();
       const source = audioCtx.createMediaElementSource(video);
       const dest = audioCtx.createMediaStreamDestination();
       source.connect(dest);
