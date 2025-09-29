@@ -16,6 +16,9 @@ const nextConfig: NextConfig = {
         fs: false,
         path: false,
         os: false,
+        crypto: false,
+        stream: false,
+        buffer: false,
       };
     }
     
@@ -23,23 +26,9 @@ const nextConfig: NextConfig = {
   },
   // Ensure static files are properly handled
   trailingSlash: false,
-  // Configure headers for better performance
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-        ],
-      },
-    ];
+  // Disable image optimization for Vercel compatibility
+  images: {
+    unoptimized: true,
   },
 };
 
