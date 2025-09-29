@@ -1,0 +1,34 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "remotion-captioning-demo/package.json",
+      "use": "@vercel/next",
+      "config": {
+        "distDir": ".next"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "remotion-captioning-demo/$1"
+    }
+  ],
+  "functions": {
+    "remotion-captioning-demo/src/app/api/generate-captions/route.ts": {
+      "maxDuration": 60
+    },
+    "remotion-captioning-demo/src/app/api/export-video/route.ts": {
+      "maxDuration": 30
+    }
+  },
+  "build": {
+    "env": {
+      "NEXT_TELEMETRY_DISABLED": "1"
+    }
+  }
+}
