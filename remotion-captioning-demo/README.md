@@ -1,6 +1,6 @@
 # Remotion Captioning Demo
 
-A full-stack web application that allows users to upload MP4 videos, automatically generate captions using speech-to-text, and render those captions onto the video using Remotion with support for Hinglish (Hindi + English mixed) text.
+A full-stack web application that allows users to upload MP4 videos, automatically generate captions using speech-to-text, and render those captions onto the video using Remotion with support for Hinglish (Hindi + English mixed) text and karaoke-style highlighting.
 
 ## Features
 
