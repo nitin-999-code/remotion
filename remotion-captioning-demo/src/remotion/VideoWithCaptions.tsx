@@ -101,7 +101,6 @@ export const VideoWithCaptions: React.FC<VideoWithCaptionsProps> = ({
                   // Determine the state of this word
                   const isFullyHighlighted = index < wordsToHighlight;
                   const isCurrentWord = index === wordsToHighlight;
-                  const isPartiallyHighlighted = isCurrentWord && wordProgress > 0;
 
                   let wordStyle: React.CSSProperties = {
                     display: "inline-block",
