@@ -66,8 +66,7 @@ export const VideoWithCaptions: React.FC<VideoWithCaptionsProps> = ({
             );
           }
 
-          // Karaoke: two layers, base and highlight clipped to progress
-          // Outer container (positioned), inner wrapper holds the overlayed text
+          // Karaoke: word-by-word highlighting
           const containerStyle: React.CSSProperties = {
             ...commonStyle,
             backgroundColor: preset.style.backgroundColor,
@@ -75,41 +74,84 @@ export const VideoWithCaptions: React.FC<VideoWithCaptionsProps> = ({
           };
 
           const contentWrapper: React.CSSProperties = {
-            position: "relative",
             padding: preset.style.padding,
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: preset.style.alignment === "center" ? "center" : 
+                           preset.style.alignment === "right" ? "flex-end" : "flex-start",
+            gap: "0.3em",
+            lineHeight: 1.2,
+            alignItems: "baseline",
           };
 
-          const baseStyle: React.CSSProperties = {
-            position: "absolute",
-            inset: 0,
-            padding: preset.style.padding,
-            // Dim base line so the highlight is clearly visible
-            color: "rgba(255,255,255,0.35)",
-            whiteSpace: "pre-wrap",
-          };
-
-          const highlightStyle: React.CSSProperties = {
-            position: "absolute",
-            inset: 0,
-            padding: preset.style.padding,
-            whiteSpace: "pre-wrap",
-            color: "transparent",
-            // Solid highlight up to progress, then transparent
-            backgroundImage: `linear-gradient(to right, ${preset.style.textColor} ${Math.round(progress * 100)}%, rgba(0,0,0,0) ${Math.round(progress * 100)}%)`,
-            backgroundClip: "text",
-            WebkitBackgroundClip: "text" as unknown as React.CSSProperties["WebkitBackgroundClip"],
-            textShadow: "2px 2px 6px rgba(0,0,0,0.9)",
-          };
+          // Split text into words for word-by-word highlighting
+          const words = currentCaption.text.trim().split(/\s+/);
+          const totalWords = words.length;
+          
+          // Calculate which words should be highlighted based on progress
+          const wordsToHighlight = Math.floor(progress * totalWords);
+          
+          // For smoother animation, calculate partial progress for current word
+          const wordProgress = (progress * totalWords) % 1;
 
           return (
             <div style={containerStyle}>
               <div style={contentWrapper}>
-                <div style={baseStyle}>{currentCaption.text}</div>
-                <div style={highlightStyle}>{currentCaption.text}</div>
-                {/* Spacer to give the container height (matches text flow) */}
-                <div style={{ visibility: "hidden", padding: preset.style.padding }}>
-                  {currentCaption.text}
-                </div>
+                {words.map((word, index) => {
+                  // Determine the state of this word
+                  const isFullyHighlighted = index < wordsToHighlight;
+                  const isCurrentWord = index === wordsToHighlight;
+                  const isPartiallyHighlighted = isCurrentWord && wordProgress > 0;
+
+                  let wordStyle: React.CSSProperties = {
+                    display: "inline-block",
+                    transition: "all 0.2s ease-in-out",
+                    textShadow: "1px 1px 2px rgba(0,0,0,0.8)",
+                    position: "relative",
+                  };
+
+                  // Fully highlighted words (already sung)
+                  if (isFullyHighlighted) {
+                    wordStyle = {
+                      ...wordStyle,
+                      color: "#FFD700",
+                      textShadow: "2px 2px 4px rgba(0,0,0,0.9), 0 0 10px rgba(255,215,0,0.5)",
+                      transform: "scale(1.05)",
+                    };
+                  }
+                  // Currently singing word (partial or about to be sung)
+                  else if (isCurrentWord) {
+                    // Simple approach: just change color when word starts, no partial highlighting
+                    if (wordProgress > 0.5) {
+                      // Word is more than halfway through, highlight it fully
+                      wordStyle = {
+                        ...wordStyle,
+                        color: "#FFD700",
+                        textShadow: "2px 2px 4px rgba(0,0,0,0.9), 0 0 10px rgba(255,215,0,0.5)",
+                        transform: "scale(1.05)",
+                      };
+                    } else {
+                      // Word hasn't started yet or just starting, keep it dim
+                      wordStyle = {
+                        ...wordStyle,
+                        color: "rgba(255,255,255,0.4)",
+                      };
+                    }
+                  }
+                  // Unsung words
+                  else {
+                    wordStyle = {
+                      ...wordStyle,
+                      color: "rgba(255,255,255,0.4)",
+                    };
+                  }
+
+                  return (
+                    <span key={index} style={wordStyle}>
+                      {word}
+                    </span>
+                  );
+                })}
               </div>
             </div>
           );
