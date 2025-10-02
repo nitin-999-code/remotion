@@ -17,6 +17,9 @@ export async function POST(request: NextRequest) {
     const deepgramKey = process.env.DEEPGRAM_API_KEY;
     let captions: { text: string; startTime: number; endTime: number }[] = [];
 
+    console.log("Deepgram key exists:", !!deepgramKey);
+    console.log("Environment keys:", Object.keys(process.env).filter(k => k.includes('DEEPGRAM')));
+
     if (deepgramKey) {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
