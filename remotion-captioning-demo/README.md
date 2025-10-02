@@ -215,3 +215,4 @@ This app runs on Vercel using Next.js App Router.
   - Build Command: `npm run build`
   - Output: handled by Next.js
 - Remotion preview/rendering is a local workflow. Use `npx remotion preview --port=3001` locally to render videos.
+# Environment variables updated
