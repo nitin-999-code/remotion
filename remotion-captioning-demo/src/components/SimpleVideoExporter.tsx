@@ -29,23 +29,12 @@ export default function SimpleVideoExporter({ videoUrl, captions, preset }: Simp
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const video = videoRef.current;
-    if (!video) return;
-
-    // Set canvas size to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    // Draw video frame
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // Draw caption
+    // Draw caption overlay (video is already drawn in main loop)
     const text = caption.text;
     const fontSize = (preset.style.fontSize * canvas.width) / 1280; // Scale font size
     const padding = (preset.style.padding * canvas.width) / 1280; // Scale padding
 
     ctx.font = `${fontSize}px ${preset.style.fontFamily}`;
-    ctx.fillStyle = preset.style.backgroundColor;
     ctx.textAlign = preset.style.alignment as CanvasTextAlign;
     ctx.textBaseline = "middle";
 
@@ -141,54 +130,29 @@ export default function SimpleVideoExporter({ videoUrl, captions, preset }: Simp
         mimeType: "video/webm;codecs=vp9,opus",
       });
 
-      let downloadStarted = false;
-
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           recordedChunks.push(event.data);
-          
-          // Start download immediately when we have some data (after ~1 second)
-          if (!downloadStarted && recordedChunks.length > 3) {
-            downloadStarted = true;
-            setIsExporting(false); // Hide loading state immediately
-            
-            // Show immediate feedback
-            alert("Download started! The video is being processed in the background.");
-            
-            // Create download link that will update as more data comes in
-            setTimeout(() => {
-              const partialBlob = new Blob(recordedChunks, { type: "video/webm" });
-              const url = URL.createObjectURL(partialBlob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = "captioned-video.webm";
-              a.click();
-              URL.revokeObjectURL(url);
-            }, 100);
-          }
         }
       };
 
       mediaRecorder.onstop = () => {
-        // Create final complete video if download hasn't started yet
-        if (!downloadStarted) {
-          const blob = new Blob(recordedChunks, { type: "video/webm" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "captioned-video.webm";
-          a.click();
-          URL.revokeObjectURL(url);
-          setIsExporting(false);
-        }
+        const blob = new Blob(recordedChunks, { type: "video/webm" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "captioned-video.webm";
+        a.click();
+        URL.revokeObjectURL(url);
+        setIsExporting(false);
         audioCtx.close();
       };
 
-      // Request data every 200ms for faster download start
-      mediaRecorder.start(200);
+      mediaRecorder.start();
 
-      // Play from start for processing
+      // Play from start for processing (MUTED to avoid audio playback)
       video.currentTime = 0;
+      video.muted = true; // Mute the video during export
       await video.play();
 
       const onEnded = () => {
@@ -201,14 +165,20 @@ export default function SimpleVideoExporter({ videoUrl, captions, preset }: Simp
           if (mediaRecorder.state === "recording") mediaRecorder.stop();
           return;
         }
+        
+        // Always draw the video first
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Then draw caption if exists
         const currentCaption = getCaptionAtTime(video.currentTime);
         if (currentCaption) {
           drawCaptionOnCanvas(ctx, currentCaption);
-        } else {
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         }
+        
         requestAnimationFrame(drawFrame);
       };
+      
+      // Start drawing frames
       drawFrame();
     } catch (error) {
       console.error("Export failed:", error);
@@ -264,8 +234,8 @@ export default function SimpleVideoExporter({ videoUrl, captions, preset }: Simp
         <h3 className="font-medium text-blue-900 mb-2">Export Instructions:</h3>
         <ol className="text-sm text-blue-800 space-y-1">
           <li>1. Click &quot;Download Video with Captions&quot; above</li>
-          <li>2. Download will start immediately (within 1-2 seconds)</li>
-          <li>3. Video processing continues in the background</li>
+          <li>2. Video will be processed with captions overlaid (muted during export)</li>
+          <li>3. Download starts automatically when processing completes</li>
           <li>4. A WebM file will be saved to your Downloads folder</li>
           <li>5. You can convert WebM to MP4 using online converters if needed</li>
         </ol>
