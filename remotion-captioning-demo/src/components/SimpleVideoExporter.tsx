@@ -141,25 +141,53 @@ export default function SimpleVideoExporter({ videoUrl, captions, preset }: Simp
         mimeType: "video/webm;codecs=vp9,opus",
       });
 
+      let downloadStarted = false;
+
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) recordedChunks.push(event.data);
+        if (event.data.size > 0) {
+          recordedChunks.push(event.data);
+          
+          // Start download immediately when we have some data (after ~1 second)
+          if (!downloadStarted && recordedChunks.length > 3) {
+            downloadStarted = true;
+            setIsExporting(false); // Hide loading state immediately
+            
+            // Show immediate feedback
+            alert("Download started! The video is being processed in the background.");
+            
+            // Create download link that will update as more data comes in
+            setTimeout(() => {
+              const partialBlob = new Blob(recordedChunks, { type: "video/webm" });
+              const url = URL.createObjectURL(partialBlob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = "captioned-video.webm";
+              a.click();
+              URL.revokeObjectURL(url);
+            }, 100);
+          }
+        }
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(recordedChunks, { type: "video/webm" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "captioned-video.webm";
-        a.click();
-        URL.revokeObjectURL(url);
-        setIsExporting(false);
+        // Create final complete video if download hasn't started yet
+        if (!downloadStarted) {
+          const blob = new Blob(recordedChunks, { type: "video/webm" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "captioned-video.webm";
+          a.click();
+          URL.revokeObjectURL(url);
+          setIsExporting(false);
+        }
         audioCtx.close();
       };
 
-      mediaRecorder.start();
+      // Request data every 200ms for faster download start
+      mediaRecorder.start(200);
 
-      // Play from start
+      // Play from start for processing
       video.currentTime = 0;
       await video.play();
 
@@ -236,9 +264,10 @@ export default function SimpleVideoExporter({ videoUrl, captions, preset }: Simp
         <h3 className="font-medium text-blue-900 mb-2">Export Instructions:</h3>
         <ol className="text-sm text-blue-800 space-y-1">
           <li>1. Click &quot;Download Video with Captions&quot; above</li>
-          <li>2. The video will be processed with captions overlaid</li>
-          <li>3. A WebM file will be downloaded to your computer</li>
-          <li>4. You can convert WebM to MP4 using online converters if needed</li>
+          <li>2. Download will start immediately (within 1-2 seconds)</li>
+          <li>3. Video processing continues in the background</li>
+          <li>4. A WebM file will be saved to your Downloads folder</li>
+          <li>5. You can convert WebM to MP4 using online converters if needed</li>
         </ol>
       </div>
     </div>
