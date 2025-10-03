@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       const buffer = Buffer.from(arrayBuffer);
 
       const dgUrl =
-        "https://api.deepgram.com/v1/listen?model=nova-2-general&smart_format=true&utterances=true&paragraphs=true&detect_language=true";
+        "https://api.deepgram.com/v1/listen?model=nova-2&smart_format=true&utterances=true&paragraphs=true&detect_language=true&punctuate=true";
 
       const dgRes = await fetch(dgUrl, {
         method: "POST",
@@ -36,6 +36,8 @@ export async function POST(request: NextRequest) {
           "Content-Type": "audio/mp4",
         },
         body: buffer,
+        // Add timeout and signal for better error handling
+        signal: AbortSignal.timeout(60000), // 60 second timeout
       });
 
       if (!dgRes.ok) {
