@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
     let captions: { text: string; startTime: number; endTime: number }[] = [];
 
     console.log("Deepgram key exists:", !!deepgramKey);
+    console.log("Loaded Deepgram key:", deepgramKey?.slice(0, 8) + "...");
     console.log("Environment keys:", Object.keys(process.env).filter(k => k.includes('DEEPGRAM')));
 
     if (deepgramKey) {
